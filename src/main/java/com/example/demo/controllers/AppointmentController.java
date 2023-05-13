@@ -52,6 +52,11 @@ public class AppointmentController {
 
     @PostMapping("/appointment")
     public ResponseEntity<List<Appointment>> createAppointment(@RequestBody Appointment appointment){
+
+        if (appointment.getStartsAt().isEqual(appointment.getFinishesAt())
+                || appointment.getStartsAt().isAfter(appointment.getFinishesAt())){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         appointmentRepository.save(appointment);
         return new ResponseEntity<>(HttpStatus.OK);
     }
