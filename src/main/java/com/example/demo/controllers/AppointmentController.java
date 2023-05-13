@@ -53,10 +53,31 @@ public class AppointmentController {
     @PostMapping("/appointment")
     public ResponseEntity<List<Appointment>> createAppointment(@RequestBody Appointment appointment){
 
+        // Validate that the appointment starts and ends at different times and that the start time is not after the end time
         if (appointment.getStartsAt().isEqual(appointment.getFinishesAt())
                 || appointment.getStartsAt().isAfter(appointment.getFinishesAt())){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+
+        // Validate that the appointment does not overlap with another appointment for the same room
+        List<Appointment> appointments = new ArrayList<>(appointmentRepository.findAll());
+        for (Appointment appointment1 : appointments) {
+            if (appointment1.getRoom().getRoomName().equals(appointment.getRoom().getRoomName())) {
+                // validate equals appointment
+                if (appointment.getStartsAt().isEqual(appointment1.getStartsAt())
+                        && appointment.getFinishesAt().isEqual(appointment1.getFinishesAt())) {
+                    return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+                }
+                // validate overlap appointment
+                if ((appointment.getStartsAt().isAfter(appointment1.getStartsAt())
+                        && appointment.getStartsAt().isBefore(appointment1.getFinishesAt()))
+                    || (appointment.getFinishesAt().isAfter(appointment1.getStartsAt())
+                                && appointment.getFinishesAt().isBefore(appointment1.getFinishesAt()))) {
+                    return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+                }
+            }
+        }
+
         appointmentRepository.save(appointment);
         return new ResponseEntity<>(HttpStatus.OK);
     }
