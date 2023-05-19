@@ -32,5 +32,51 @@ La evaluación tendrá en cuenta principalmente los objetivos cumplidos, la cali
 * Calidad -> 200 PTS
 * Documentación -> 100 PTS
 
+- - -
+
+# CHALLENGE TODOs
+
+- Muy Cloud Native y bricolage, mas que programación de algoritmos.
+
+- Podría ser evaluado una sección de TODOs/Refactorización de la aplicación para ver el nivel de conocimiento de buenas prácticas arquitecturales como parte de la documentación.
+
+- En general con el enunciado de las tareas no se sabe si es requerido o evaluado realizar algún tipo de modificación más allá de las tareas y ficheros indicadas.
+
+- La BBDD de test es H2 y la de ejecución es MySQL por lo que puede haber problemas en el testeo por incompatibilidad.
+
+- No se evalúa conocimiento de OpenAPI y Swagger
+
+- En el mismo microservicio se gestionan los maestros (Doctor, Patient, Room), y el negocio (Appointment)
+
+- Se usan persistence entities en vez de DTOs en los controllers, se expone la entidad de negocio en vez de una entidad/esquema de presentación.
+
+- No se incluye la dependencia de JavaBean validation  
+
+- No hay separación de capa de servicio
+
+- La entity Doctor no tiene un Id en H2 (incompatibilidad de anotación) por lo que no se puede realizar un findbyId que permita verificar si el doctor existe en un appointment, no es compatible la autogeneración del id en H2 con mySQL
+
+- shouldCreateAppointment y en general las creaciones deberían verificar HttpStatus.CREATED en vez de HttpStatus.OK, para mejorar la monitorización del service mesh
+
+- shouldCreateOneAppointmentOutOfTwoConflictDate obliga a realizar un findAll para verificar conflicto de room , no es muy performance
+
+- En la creación del appointment se debe de obtener el id del doctor y del room para poder crearlo, tanto el doctor como el room tienen que existir previamente y se debe validar 
+
+- Response entity debería dejar algún tipo de mensaje de error en el body, la gestión del response se debería centralizar.
+
+- La entidad Doctor necesitaría algún tipo de validación de equals para verificar que son iguales o setear el Id en el test que no es posible por la estrategia de creación
+
+- La entidad Room necesitaría algún tipo de validación de equals para verificar que son iguales o setear el Id en el test que no es posible por la estrategia de creación
+
+- Para verificar el overlapping se tendría que realizar un servicio que lo realice por doctor y/o por room
+
+- Evaluar las consideraciones personales sobre la prueba que no esté verificado en ella
+
+- La documentación UML no es algo muy demandado en servicios sencillos, no debería ser determinante
+
+- El uso de Dockerfile multistage es algo muy de bricolage que normalmente está soportado por equipos de DevOps y ARQ incluyéndolo en las pipelines
+
+
+
 
 
