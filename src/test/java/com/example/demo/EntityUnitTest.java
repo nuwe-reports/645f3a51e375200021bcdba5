@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -37,14 +38,50 @@ class EntityUnitTest {
     private Appointment a2;
     private Appointment a3;
 
+
     @Test
-    void this_is_a_test(){
-        // DELETE THIS TEST
-        assertThat(false).isEqualTo(true);
+    public void testDoctorConstructor() {
+        Doctor doctor = new Doctor("John", "Doe", 35, "johndoe@example.com");
+        assertEquals("John", doctor.getFirstName());
+        assertEquals("Doe", doctor.getLastName());
+        assertEquals(35, doctor.getAge());
+        assertEquals("johndoe@example.com", doctor.getEmail());
     }
 
-    /** TODO
-     * Implement tests for each Entity class: Doctor, Patient, Room and Appointment.
-     * Make sure you are as exhaustive as possible. Coverage is checked ;)
-     */
+    @Test
+    public void testDoctorSetterAndGetter() {
+        Doctor doctor = new Doctor();
+        doctor.setId(123);
+        assertEquals(123, doctor.getId());
+    }
+
+    @Test
+    public void testDoctorNullAndEmpty() {
+        Doctor doctor = new Doctor();
+        doctor.setFirstName(null);
+        doctor.setLastName("");
+        assertNull(doctor.getFirstName());
+        assertEquals("", doctor.getLastName());
+    }
+
+    @Test
+    public void testDoctorBoundaryValue() {
+        Doctor doctor = new Doctor("John", "Doe", 200, "johndoe@example.com");
+        assertEquals(200, doctor.getAge());
+    }
+
+    @Test
+    public void testRoomConstructor() {
+        Room room = new Room("Room 1");
+        assertEquals("Room 1", room.getRoomName());
+    }
+
+    @Test
+    public void testRoomDefaultConstructor() {
+        Room room = new Room();
+        assertNull(room.getRoomName());
+    }
+
+
+
 }
