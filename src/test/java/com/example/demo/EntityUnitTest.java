@@ -1,6 +1,5 @@
 package com.example.demo;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
@@ -37,17 +36,23 @@ class EntityUnitTest {
     private Appointment a1;
     private Appointment a2;
     private Appointment a3;
-
-
+    private Appointment a4_rightOverlap_a1;
+    private Appointment a5_leftOverlap_a1;
+    private Appointment a6_innerOverlap_a1;
+    private Appointment a7_noOverlap_a1;
 
     @BeforeAll
     void init() {
         d1 = new Doctor("John", "Doe", 35, "johndoe@example.com");
         p1 = new Patient("Jane", "Doe", 35, "janedoe@example.com");
         r1 = new Room("Room 1");
-        a1 = new Appointment(p1, d1, r1, LocalDateTime.parse("2020-01-01T10:00:00"), LocalDateTime.parse("2020-01-01T10:30:00"));
-        a2 = new Appointment(p1, d1, r1, LocalDateTime.parse("2020-01-01T10:00:00"), LocalDateTime.parse("2020-01-01T10:30:00"));
-        a3 = new Appointment(p1, d1, r1, LocalDateTime.parse("2020-01-01T10:00:00"), LocalDateTime.parse("2020-01-01T10:30:00"));
+        a1 = new Appointment(p1, d1, r1, LocalDateTime.parse("2020-01-01T10:00:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME), LocalDateTime.parse("2020-01-01T10:30:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        a2 = new Appointment(p1, d1, r1, LocalDateTime.parse("2020-01-01T10:00:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME), LocalDateTime.parse("2020-01-01T11:30:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        a3 = new Appointment(p1, d1, r1, LocalDateTime.parse("2020-01-01T09:00:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME), LocalDateTime.parse("2020-01-01T10:30:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        a4_rightOverlap_a1 = new Appointment(p1, d1, r1, LocalDateTime.parse("2020-01-01T10:15:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME), LocalDateTime.parse("2020-01-01T11:00:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        a5_leftOverlap_a1 = new Appointment(p1, d1, r1, LocalDateTime.parse("2020-01-01T09:00:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME), LocalDateTime.parse("2020-01-01T10:15:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        a6_innerOverlap_a1 = new Appointment(p1, d1, r1, LocalDateTime.parse("2020-01-01T10:10:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME), LocalDateTime.parse("2020-01-01T10:20:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        a7_noOverlap_a1 = new Appointment(p1, d1, r1, LocalDateTime.parse("2020-01-01T12:00:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME), LocalDateTime.parse("2020-01-01T13:00:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME));
     }
 
     @Test
@@ -82,7 +87,6 @@ class EntityUnitTest {
         assertEquals("", doctor.getLastName());
         assertNull(doctor.getEmail());
         assertEquals(0,doctor.getAge());
-
     }
 
     @Test
@@ -173,52 +177,57 @@ class EntityUnitTest {
 
     @Test
     void testAppointmentGetterSetter() {
-        Patient patient = new Patient("John", "Doe", 35, "testmail@mail.com");
-        Doctor doctor = new Doctor("Doctor", "Smith", 200, "drsmith@example.com");
-        Room room = new Room("Room1");
-        LocalDateTime startsAt = LocalDateTime.of(2023, 5, 13, 10, 0);
-        LocalDateTime finishesAt = LocalDateTime.of(2023, 5, 13, 11, 0);
-
         Appointment appointment = new Appointment();
-        appointment.setPatient(patient);
-        appointment.setDoctor(doctor);
-        appointment.setRoom(room);
+        appointment.setId(500);
+        appointment.setPatient(p1);
+        appointment.setDoctor(d1);
+        appointment.setRoom(r1);
+        LocalDateTime startsAt = LocalDateTime.of(2023, 5, 13, 10, 0);
         appointment.setStartsAt(startsAt);
+        LocalDateTime finishesAt = LocalDateTime.of(2023, 5, 13, 11, 0);
         appointment.setFinishesAt(finishesAt);
 
-        assertEquals(patient, appointment.getPatient());
-        assertEquals(doctor, appointment.getDoctor());
-        assertEquals(room, appointment.getRoom());
+        assertEquals(500, appointment.getId());
+        assertEquals(d1, appointment.getDoctor());
+        assertEquals(r1, appointment.getRoom());
         assertEquals(startsAt, appointment.getStartsAt());
         assertEquals(finishesAt, appointment.getFinishesAt());
     }
 
     @Test
-    void testOverlappingAppointments() {
-        Patient patient1 = new Patient("John", "Doe", 35, "testmail@mail.com");
-        Doctor doctor1 = new Doctor("Doctor", "Smith", 200, "drsmith@example.com");
-        Room room1 = new Room("Room1");
+    void testAppointmentNullAndEmpty() {
+        Appointment appointment = new Appointment();
 
-        LocalDateTime startsAt1 = LocalDateTime.of(2023, 5, 13, 10, 0);
-        LocalDateTime finishesAt1 = LocalDateTime.of(2023, 5, 13, 11, 0);
-        Appointment appointment1 = new Appointment(patient1, doctor1, room1, startsAt1, finishesAt1);
-
-        LocalDateTime startsAt2 = LocalDateTime.of(2023, 5, 13, 10, 30);
-        LocalDateTime finishesAt2 = LocalDateTime.of(2023, 5, 13, 11, 30);
-        Appointment appointment2 = new Appointment(patient1, doctor1, room1, startsAt2, finishesAt2);
-
-        LocalDateTime startsAt3 = LocalDateTime.of(2023, 5, 13, 9, 30);
-        LocalDateTime finishesAt3 = LocalDateTime.of(2023, 5, 13, 10, 30);
-        Appointment appointment3 = new Appointment(patient1, doctor1, room1, startsAt3, finishesAt3);
-
-
-
-        assertTrue(appointment1.overlaps(appointment2));
-        assertTrue(appointment1.overlaps(appointment3));
-
-
-
+        assertEquals(0, appointment.getId());
+        assertNull(appointment.getDoctor());
+        assertNull(appointment.getPatient());
+        assertNull(appointment.getRoom());
+        assertNull(appointment.getStartsAt());
+        assertNull(appointment.getFinishesAt());
     }
 
+    @Test
+    void testValidDatesAppointment() {
+        Appointment appointment = new Appointment(p1, d1, r1, null, null);
+        assertFalse(appointment.areValidDates());
+        appointment.setStartsAt(LocalDateTime.parse("2020-01-01T10:30:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        assertFalse(appointment.areValidDates());
+        appointment.setStartsAt(null);
+        appointment.setFinishesAt(LocalDateTime.parse("2020-01-01T11:30:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        assertFalse(appointment.areValidDates());
+        appointment.setStartsAt(LocalDateTime.parse("2020-01-01T12:30:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        assertFalse(appointment.areValidDates());
+        appointment.setStartsAt(LocalDateTime.parse("2020-01-01T10:30:00",DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        assertTrue(appointment.areValidDates());
+    }
+    @Test
+    void testOverlappingAppointments() {
+        assertTrue(a1.overlaps(a2));
+        assertTrue(a1.overlaps(a3));
+        assertTrue(a1.overlaps(a4_rightOverlap_a1));
+        assertTrue(a1.overlaps(a5_leftOverlap_a1));
+        assertTrue(a1.overlaps(a6_innerOverlap_a1));
+        assertFalse(a1.overlaps(a7_noOverlap_a1));
+    }
 
 }

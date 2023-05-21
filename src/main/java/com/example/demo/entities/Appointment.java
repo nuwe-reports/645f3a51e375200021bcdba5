@@ -88,14 +88,22 @@ public class Appointment {
     public void setRoom(Room room){
         this.room = room;
     }
-    
+
+    public boolean areValidDates(){
+        return (this.getStartsAt() != null
+            && this.getFinishesAt() != null
+            && this.getStartsAt().isBefore(this.getFinishesAt()));
+    }
+
     public boolean overlaps( Appointment appointment){
-        /// True when:
+        /// True when: dates are valid and same room on both appointments
         // Case 1: A.starts == B.starts
         // Case 2: A.finishes == B.finishes 
         // Case 3: A.starts < B.finishes && B.finishes < A.finishes
         // Case 4: B.starts < A.starts && A.finishes < B.finishes
-        if (appointment.getRoom().getRoomName().equals(this.getRoom().getRoomName())){ 
+        if (this.areValidDates()
+                && appointment.areValidDates()
+                && appointment.getRoom().getRoomName().equals(this.getRoom().getRoomName())){
             if (this.getStartsAt().equals(appointment.getStartsAt()) || 
                     appointment.getFinishesAt().equals(this.getFinishesAt())){
                 return true;
