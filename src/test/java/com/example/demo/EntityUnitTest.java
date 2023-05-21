@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -89,6 +90,35 @@ class EntityUnitTest {
         assertEquals(0,doctor.getAge());
     }
 
+
+    @Test
+    void testSaveDoctor() {
+        Doctor doctor = new Doctor("John", "Doe", 35, "johndoe@example.com");
+        Doctor savedDoctor = entityManager.persistAndFlush(doctor);
+
+        assertNotNull(savedDoctor);
+        assertEquals("John", savedDoctor.getFirstName());
+        assertEquals("Doe", savedDoctor.getLastName());
+        assertEquals(35, savedDoctor.getAge());
+        assertEquals("johndoe@example.com", savedDoctor.getEmail());
+    }
+
+    @Test
+    void testGetDoctorById() {
+        Doctor doctor = new Doctor("Jane", "Smith", 40, "janesmith@example.com");
+
+        Doctor savedDoctor = entityManager.persistAndFlush(doctor);
+
+        Doctor retrievedDoctor = entityManager.find(Doctor.class, savedDoctor.getId());
+
+        assertNotNull(retrievedDoctor);
+
+        assertEquals("Jane", retrievedDoctor.getFirstName());
+        assertEquals("Smith", retrievedDoctor.getLastName());
+        assertEquals(40, retrievedDoctor.getAge());
+        assertEquals("janesmith@example.com", retrievedDoctor.getEmail());
+    }
+
     @Test
     void testRoomConstructor() {
         assertEquals("Room 1", r1.getRoomName());
@@ -157,6 +187,31 @@ class EntityUnitTest {
         assertEquals(0,patient.getAge());
     }
 
+
+    @Test
+    void testSavePatient() {
+        Patient patient = new Patient("Helen", "Ill", 25, "helen@example.com");
+        Patient savedPatient = entityManager.persistAndFlush(patient);
+
+        assertNotNull(savedPatient);
+        assertEquals("Helen", savedPatient.getFirstName());
+        assertEquals("Ill", savedPatient.getLastName());
+        assertEquals(25, savedPatient.getAge());
+        assertEquals("helen@example.com", savedPatient.getEmail());
+    }
+
+    @Test
+    void testGetPatientById() {
+        Patient patient = new Patient("Helen", "Ill", 25, "helen@example.com");
+        Patient savedPatient = entityManager.persistAndFlush(patient);
+        Patient retrievePatient = entityManager.find(Patient.class, savedPatient.getId());
+
+        assertNotNull(retrievePatient);
+        assertEquals("Helen", retrievePatient.getFirstName());
+        assertEquals("Ill", retrievePatient.getLastName());
+        assertEquals(25, retrievePatient.getAge());
+        assertEquals("helen@example.com", retrievePatient.getEmail());
+    }
 
     @Test
     void testAppointmentConstructor() {
