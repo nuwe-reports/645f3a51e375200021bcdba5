@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
@@ -21,6 +22,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import com.example.demo.entities.*;
 
 @DataJpaTest
+@RunWith(SpringRunner.class)
 @AutoConfigureTestDatabase(replace=Replace.NONE)
 @TestInstance(Lifecycle.PER_CLASS)
 class EntityUnitTest {
@@ -90,9 +92,8 @@ class EntityUnitTest {
         assertEquals(0,doctor.getAge());
     }
 
-
     @Test
-    void testSaveDoctor() {
+    void testSaveGetDeleteDoctor() {
         Doctor doctor = new Doctor("John", "Doe", 35, "johndoe@example.com");
         Doctor savedDoctor = entityManager.persistAndFlush(doctor);
 
@@ -101,22 +102,14 @@ class EntityUnitTest {
         assertEquals("Doe", savedDoctor.getLastName());
         assertEquals(35, savedDoctor.getAge());
         assertEquals("johndoe@example.com", savedDoctor.getEmail());
-    }
-
-    @Test
-    void testGetDoctorById() {
-        Doctor doctor = new Doctor("Jane", "Smith", 40, "janesmith@example.com");
-
-        Doctor savedDoctor = entityManager.persistAndFlush(doctor);
 
         Doctor retrievedDoctor = entityManager.find(Doctor.class, savedDoctor.getId());
-
         assertNotNull(retrievedDoctor);
+        assertThat(retrievedDoctor).isEqualTo(savedDoctor);
 
-        assertEquals("Jane", retrievedDoctor.getFirstName());
-        assertEquals("Smith", retrievedDoctor.getLastName());
-        assertEquals(40, retrievedDoctor.getAge());
-        assertEquals("janesmith@example.com", retrievedDoctor.getEmail());
+        entityManager.remove(retrievedDoctor);
+        Doctor retrievedDoctorDeleted = entityManager.find(Doctor.class, savedDoctor.getId());
+        assertNull(retrievedDoctorDeleted);
     }
 
     @Test
@@ -130,6 +123,22 @@ class EntityUnitTest {
         assertEquals("", room.getRoomName());
         Room room2 =  new Room();
         assertNull(room2.getRoomName());
+    }
+
+    @Test
+    void testSaveGetDeleteRoom() {
+        Room room = new Room("Room 2");
+        Room savedRoom = entityManager.persistAndFlush(room);
+
+        assertNotNull(savedRoom);
+        assertEquals("Room 2", savedRoom.getRoomName());
+
+        Room retrievedRoom = entityManager.find(Room.class, savedRoom.getRoomName());
+        assertNotNull(retrievedRoom);
+        assertThat(retrievedRoom).isEqualTo(savedRoom);
+        entityManager.remove(retrievedRoom);
+        Room retrievedRoomDeleted = entityManager.find(Room.class, savedRoom.getRoomName());
+        assertNull(retrievedRoomDeleted);
     }
 
     @Test
@@ -189,7 +198,7 @@ class EntityUnitTest {
 
 
     @Test
-    void testSavePatient() {
+    void testSaveGetDeletePatient() {
         Patient patient = new Patient("Helen", "Ill", 25, "helen@example.com");
         Patient savedPatient = entityManager.persistAndFlush(patient);
 
@@ -198,19 +207,14 @@ class EntityUnitTest {
         assertEquals("Ill", savedPatient.getLastName());
         assertEquals(25, savedPatient.getAge());
         assertEquals("helen@example.com", savedPatient.getEmail());
-    }
 
-    @Test
-    void testGetPatientById() {
-        Patient patient = new Patient("Helen", "Ill", 25, "helen@example.com");
-        Patient savedPatient = entityManager.persistAndFlush(patient);
         Patient retrievePatient = entityManager.find(Patient.class, savedPatient.getId());
-
         assertNotNull(retrievePatient);
-        assertEquals("Helen", retrievePatient.getFirstName());
-        assertEquals("Ill", retrievePatient.getLastName());
-        assertEquals(25, retrievePatient.getAge());
-        assertEquals("helen@example.com", retrievePatient.getEmail());
+        assertThat(retrievePatient).isEqualTo(savedPatient);
+
+        entityManager.remove(retrievePatient);
+        Patient retrievePatientDeleted = entityManager.find(Patient.class, retrievePatient.getId());
+        assertNull(retrievePatientDeleted);
     }
 
     @Test
@@ -283,6 +287,32 @@ class EntityUnitTest {
         assertTrue(a1.overlaps(a5_leftOverlap_a1));
         assertTrue(a1.overlaps(a6_innerOverlap_a1));
         assertFalse(a1.overlaps(a7_noOverlap_a1));
+    }
+
+    @Test
+    void testSaveGetDeleteAppointment() {
+        Patient patient = new Patient("John", "Doe", 35, "testmail@mail.com");
+        Doctor doctor = new Doctor("Doctor", "Smith", 200, "drsmith@example.com");
+        Room room = new Room("Room1");
+        LocalDateTime startsAt = LocalDateTime.of(2023, 5, 13, 10, 0);
+        LocalDateTime finishesAt = LocalDateTime.of(2023, 5, 13, 11, 0);
+        Appointment appointment = new Appointment(patient, doctor, room, startsAt, finishesAt);
+        Appointment savedAppointment = entityManager.persistAndFlush(appointment);
+
+        assertNotNull(savedAppointment);
+        assertEquals(LocalDateTime.of(2023, 5, 13, 10, 0), savedAppointment.getStartsAt());
+        assertEquals(LocalDateTime.of(2023, 5, 13, 11, 0), savedAppointment.getFinishesAt());
+        assertThat(savedAppointment.getRoom()).isEqualTo(room);
+        assertThat(savedAppointment.getDoctor()).isEqualTo(doctor);
+        assertThat(savedAppointment.getPatient()).isEqualTo(patient);
+
+        Appointment retrieveAppointment = entityManager.find(Appointment.class, savedAppointment.getId());
+        assertNotNull(retrieveAppointment);
+        assertThat(retrieveAppointment).isEqualTo(savedAppointment);
+
+        entityManager.remove(retrieveAppointment);
+        Appointment retrieveAppointmentDeleted = entityManager.find(Appointment.class, retrieveAppointment.getId());
+        assertNull(retrieveAppointmentDeleted);
     }
 
 }
