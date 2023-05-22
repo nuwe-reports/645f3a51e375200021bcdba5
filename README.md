@@ -76,6 +76,8 @@ La evaluación tendrá en cuenta principalmente los objetivos cumplidos, la cali
 
 - El uso de Dockerfile multistage es algo muy de bricolage que normalmente está soportado por equipos de DevOps y ARQ incluyéndolo en las pipelines
 
+- La gran mayoría del código a entregar reside en JUnits, en los que hay mucho código "boilerplate" al repetirse las acciones/tests entre entidades
+
 
 
 
