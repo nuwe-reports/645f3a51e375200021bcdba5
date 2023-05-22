@@ -9,7 +9,6 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,14 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class AppointmentController {
 
-    @Autowired
-    AppointmentRepository appointmentRepository;
+    final AppointmentRepository appointmentRepository;
+
+    public AppointmentController(AppointmentRepository appointmentRepository) {
+        this.appointmentRepository = appointmentRepository;
+    }
 
     @GetMapping("/appointments")
     public ResponseEntity<List<Appointment>> getAllAppointments(){
-        List<Appointment> appointments = new ArrayList<>();
 
-        appointmentRepository.findAll().forEach(appointments::add);
+        List<Appointment> appointments = new ArrayList<>(appointmentRepository.findAll());
 
         if (appointments.isEmpty()){
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -42,40 +43,21 @@ public class AppointmentController {
     @GetMapping("/appointments/{id}")
     public ResponseEntity<Appointment> getAppointmentById(@PathVariable("id") long id){
         Optional<Appointment> appointment = appointmentRepository.findById(id);
-
-        if (appointment.isPresent()){
-            return new ResponseEntity<>(appointment.get(),HttpStatus.OK);
-        }else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return appointment.map(value -> new ResponseEntity<>(value, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping("/appointment")
     public ResponseEntity<List<Appointment>> createAppointment(@RequestBody Appointment appointment){
 
         // Validate that the appointment starts and ends at different times and that the start time is not after the end time
-        if (appointment.getStartsAt().isEqual(appointment.getFinishesAt())
-                || appointment.getStartsAt().isAfter(appointment.getFinishesAt())){
+        if (!appointment.areValidDates())
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
 
         // Validate that the appointment does not overlap with another appointment for the same room
         List<Appointment> appointments = new ArrayList<>(appointmentRepository.findAll());
         for (Appointment appointment1 : appointments) {
-            if (appointment1.getRoom().getRoomName().equals(appointment.getRoom().getRoomName())) {
-                // validate equals appointment
-                if (appointment.getStartsAt().isEqual(appointment1.getStartsAt())
-                        && appointment.getFinishesAt().isEqual(appointment1.getFinishesAt())) {
-                    return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-                }
-                // validate overlap appointment
-                if ((appointment.getStartsAt().isAfter(appointment1.getStartsAt())
-                        && appointment.getStartsAt().isBefore(appointment1.getFinishesAt()))
-                    || (appointment.getFinishesAt().isAfter(appointment1.getStartsAt())
-                                && appointment.getFinishesAt().isBefore(appointment1.getFinishesAt()))) {
-                    return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-                }
-            }
+            if (appointment.overlaps(appointment1))
+                return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
         }
 
         appointmentRepository.save(appointment);
