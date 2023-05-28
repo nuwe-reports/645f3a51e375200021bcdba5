@@ -70,13 +70,31 @@ La evaluación tendrá en cuenta principalmente los objetivos cumplidos, la cali
 
 - Para verificar el overlapping se tendría que realizar un servicio que lo realice por doctor y/o por room
 
-- Evaluar las consideraciones personales sobre la prueba que no esté verificado en ella
+- Evaluar las consideraciones personales sobre la prueba que no esté verificado en ella podría ser algo a acometer en la documentación y daría idea del nivel del candidato
 
 - La documentación UML no es algo muy demandado en servicios sencillos, no debería ser determinante
 
 - El uso de Dockerfile multistage es algo muy de bricolage que normalmente está soportado por equipos de DevOps y ARQ incluyéndolo en las pipelines
 
 - La gran mayoría del código a entregar reside en JUnits, en los que hay mucho código "boilerplate" al repetirse las acciones/tests entre entidades
+
+- En la tarea 3 se indica que se debe de realizar código limpio, se supone sobre código que cambia en el vcs, en general hay bastantes avisos de Sonar Lint en código existente.
+
+- El wrapper de maven no tiene permisos de ejecución ./mvnw
+
+- El multistage del dockerfile de mysql no está claro que sea necesario en la prueba de concepto, al tratarse de una BD no precargada (spring.jpa.hibernate.ddl-auto=update) y no tener un esquema de migración de datos.
+
+- El multistage de maven, es mas claro para la generación de las dependencias y ahorrar las layers en la imagen final.
+
+- La vulnerabilidad CVE-2022-45868 de com.h2database:h2 no parece que vaya a ser solventada por el desarrollador, después de más de un año abierta, por lo que se debería de cambiar de BBDD para evitarla o asumir que al ser solo en el scope del test no es un problema y se puede meter la excepcion.
+
+
+
+
+
+
+
+
 
 
 
