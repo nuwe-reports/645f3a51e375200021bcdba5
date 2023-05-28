@@ -4,7 +4,7 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 RUN mvn dependency:go-offline
-RUN mvn clean package -DskipTests
+RUN mvn clean package
 
 # Etapa 2: Crear una imagen mínima con Java 8 y la aplicación compilada
 FROM tomcat:9.0-jdk8-openjdk-slim
