@@ -9,7 +9,6 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,14 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class AppointmentController {
 
-    @Autowired
-    AppointmentRepository appointmentRepository;
+    final AppointmentRepository appointmentRepository;
+
+    public AppointmentController(AppointmentRepository appointmentRepository) {
+        this.appointmentRepository = appointmentRepository;
+    }
 
     @GetMapping("/appointments")
     public ResponseEntity<List<Appointment>> getAllAppointments(){
-        List<Appointment> appointments = new ArrayList<>();
 
-        appointmentRepository.findAll().forEach(appointments::add);
+        List<Appointment> appointments = new ArrayList<>(appointmentRepository.findAll());
 
         if (appointments.isEmpty()){
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -42,21 +43,25 @@ public class AppointmentController {
     @GetMapping("/appointments/{id}")
     public ResponseEntity<Appointment> getAppointmentById(@PathVariable("id") long id){
         Optional<Appointment> appointment = appointmentRepository.findById(id);
-
-        if (appointment.isPresent()){
-            return new ResponseEntity<>(appointment.get(),HttpStatus.OK);
-        }else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return appointment.map(value -> new ResponseEntity<>(value, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping("/appointment")
     public ResponseEntity<List<Appointment>> createAppointment(@RequestBody Appointment appointment){
-        /** TODO 
-         * Implement this function, which acts as the POST /api/appointment endpoint.
-         * Make sure to check out the whole project. Specially the Appointment.java class
-         */
-        return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT);
+
+        // Validate that the appointment starts and ends at different times and that the start time is not after the end time
+        if (!appointment.areValidDates())
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+        // Validate that the appointment does not overlap with another appointment for the same room
+        List<Appointment> appointments = new ArrayList<>(appointmentRepository.findAll());
+        for (Appointment appointment1 : appointments) {
+            if (appointment.overlaps(appointment1))
+                return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        appointmentRepository.save(appointment);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 

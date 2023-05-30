@@ -105,9 +105,6 @@ class AppointmentControllerUnitTest{
                 .content(objectMapper.writeValueAsString(appointment)))
                 .andExpect(status().isOk());
                 
-
-
-
         List<Appointment> appointments = new ArrayList<Appointment>();
         appointments.add(appointment);
         
@@ -117,6 +114,39 @@ class AppointmentControllerUnitTest{
                 .andExpect(status().isNotAcceptable());
                 
 
+    }
+
+    @Test
+    void shouldCreateOneAppointmentOutOfTwoConflictDateOverlaps() throws Exception{
+        Patient patient = new Patient("Jose Luis", "Olaya", 37, "j.olaya@email.com");
+        Patient patient2 = new Patient("Paulino", "Antunez", 37, "p.antunez@email.com");
+        Doctor doctor = new Doctor ("Perla", "Amalia", 24, "p.amalia@hospital.accwe");
+        Doctor doctor2 = new Doctor ("Miren", "Iniesta", 24, "m.iniesta@hospital.accwe");
+        Room room = new Room("Dermatology");
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+
+        LocalDateTime startsAt= LocalDateTime.parse("19:30 24/04/2023", formatter);
+        LocalDateTime finishesAt = LocalDateTime.parse("20:30 24/04/2023", formatter);
+
+        LocalDateTime startsAt1= LocalDateTime.parse("19:15 24/04/2023", formatter);
+        LocalDateTime finishesAt1 = LocalDateTime.parse("20:15 24/04/2023", formatter);
+
+        Appointment appointment = new Appointment(patient, doctor, room, startsAt, finishesAt);
+        Appointment appointment2 = new Appointment(patient2, doctor2, room, startsAt1, finishesAt1);
+
+
+        mockMvc.perform(post("/api/appointment").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(appointment)))
+                .andExpect(status().isOk());
+
+        List<Appointment> appointments = new ArrayList<Appointment>();
+        appointments.add(appointment);
+
+        when(appointmentRepository.findAll()).thenReturn(appointments);
+        mockMvc.perform(post("/api/appointment").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(appointment2)))
+                .andExpect(status().isNotAcceptable());
     }
 
     @Test

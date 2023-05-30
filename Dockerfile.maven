@@ -1,0 +1,13 @@
+# Etapa 1: Construir la aplicación con Maven y Java 8
+FROM maven:3.8.4-openjdk-8-slim AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn dependency:go-offline
+RUN mvn clean package
+
+# Etapa 2: Crear una imagen mínima con Java 8 y la aplicación compilada
+FROM tomcat:9.0-jdk8-openjdk-slim
+COPY --from=build /app/target/accenture-techhub-0.0.1-SNAPSHOT.war /usr/local/tomcat/webapps/accenture-techhub.war
+EXPOSE 8080
+CMD ["catalina.sh", "run"]
